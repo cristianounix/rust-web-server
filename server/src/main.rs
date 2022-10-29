@@ -34,16 +34,34 @@ fn handle_connection(mut stream: TcpStream) {
         String::from_utf8_lossy(&buffer[..])
     );
 
-    let contents = fs::read_to_string("index.html").unwrap();
+    let get = b"GET /aa HTTP/1.1\r\n";
 
-    // let response = "HTTP/1.2 200 OK\r\n\r\n";
+    if buffer.starts_with(get) {
+        let contents = fs::read_to_string("index.html").unwrap();
+    
+        // let response = "HTTP/1.2 200 OK\r\n\r\n";
+    
+        let response = format!(
+            "HTTP/1.2 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+            contents.len(),
+            contents
+        );
+    
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap()
 
-    let response = format!(
-        "HTTP/1.2 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-        contents.len(),
-        contents
-    );
-
-    stream.write(response.as_bytes()).unwrap();
-    stream.flush().unwrap()
+    } else {
+        let contents = fs::read_to_string("404.html").unwrap();
+    
+        // let response = "HTTP/1.2 200 OK\r\n\r\n";
+    
+        let response = format!(
+            "HTTP/1.2 404 NOT FOUND\r\nContent-Length: {}\r\n\r\n{}",
+            contents.len(),
+            contents
+        );
+    
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap()
+    }
 }
